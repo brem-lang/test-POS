@@ -53,12 +53,12 @@ export default function POSPage() {
   const [mobileTab, setMobileTab] = useState<'products' | 'cart'>('products')
 
   useEffect(() => {
-    fetch('/api/sessions/current').then(r => {
+    fetch('/api/sessions/current', { cache: 'no-store' }).then(r => {
       if (!r.ok) { router.push('/open-session'); return null }
       return r.json()
     }).then(s => { if (s) setSessionId(s.id) })
-    fetch('/api/products').then(r => r.json()).then(setProducts)
-  }, [router])
+    fetch('/api/products', { cache: 'no-store' }).then(r => r.json()).then(setProducts)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean) as string[]))]
   const filtered = products.filter(p => {

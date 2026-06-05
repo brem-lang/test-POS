@@ -25,7 +25,7 @@ export default function CloseSessionPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    fetch('/api/sessions/current')
+    fetch('/api/sessions/current', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(async s => {
         setSession(s)

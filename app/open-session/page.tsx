@@ -19,7 +19,7 @@ export default function OpenSessionPage() {
   const [openingCash, setOpeningCash] = useState('')
 
   useEffect(() => {
-    fetch('/api/sessions/current')
+    fetch('/api/sessions/current', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(setExisting)
       .finally(() => setLoading(false))
