@@ -19,7 +19,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!session) return NextResponse.json({ error: 'Session not found or already closed' }, { status: 404 })
     return NextResponse.json(session)
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error: 'Failed to close session' }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('[sessions/close]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
