@@ -42,6 +42,8 @@ export default function POSPage() {
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [sessionId, setSessionId] = useState<number | null>(null)
+  const [sessionLoading, setSessionLoading] = useState(true)
+  const [sessionError, setSessionError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
@@ -49,16 +51,41 @@ export default function POSPage() {
   const [cart, dispatch] = useReducer(cartReducer, [])
   const [charging, setCharging] = useState(false)
   const [receipt, setReceipt] = useState<{ orderId: number; items: CartEntry[]; total: number } | null>(null)
-  // Mobile tab: 'products' | 'cart'
   const [mobileTab, setMobileTab] = useState<'products' | 'cart'>('products')
 
   useEffect(() => {
-    fetch('/api/sessions/current', { cache: 'no-store' }).then(r => {
-      if (!r.ok) { router.push('/open-session'); return null }
-      return r.json()
-    }).then(s => { if (s) setSessionId(s.id) })
+    fetch('/api/sessions/current', { cache: 'no-store' })
+      .then(async r => {
+        if (r.status === 404) { router.push('/open-session'); return null }
+        if (!r.ok) {
+          const body = await r.json().catch(() => ({ error: `Server error (${r.status})` }))
+          setSessionError(body.error ?? `Server error (${r.status})`)
+          setSessionLoading(false)
+          return null
+        }
+        return r.json()
+      })
+      .then(s => {
+        if (s) { setSessionId(s.id); setSessionLoading(false) }
+      })
+      .catch(err => {
+        setSessionError(err.message ?? 'Network error')
+        setSessionLoading(false)
+      })
     fetch('/api/products', { cache: 'no-store' }).then(r => r.json()).then(setProducts)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (sessionLoading) return <div className="p-8 text-gray-500">Loading session...</div>
+
+  if (sessionError) return (
+    <div className="p-8 max-w-md">
+      <p className="text-red-600 font-semibold mb-2">Session check failed</p>
+      <p className="text-sm text-gray-500 mb-4 font-mono bg-gray-100 p-3 rounded">{sessionError}</p>
+      <button onClick={() => router.push('/open-session')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">
+        Go to Open Session
+      </button>
+    </div>
+  )
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean) as string[]))]
   const filtered = products.filter(p => {
