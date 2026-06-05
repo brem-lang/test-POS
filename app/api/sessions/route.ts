@@ -17,7 +17,11 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const sql = getDb()
   try {
-    const [open] = await sql`SELECT id FROM sessions WHERE status = 'open' LIMIT 1`
+    const [open] = await sql`
+      SELECT id FROM sessions
+      WHERE (status = 'open' OR status IS NULL) AND closed_at IS NULL
+      LIMIT 1
+    `
     if (open) {
       return NextResponse.json({ error: 'A session is already open' }, { status: 409 })
     }
@@ -26,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'opening_cash is required' }, { status: 400 })
     }
     const [session] = await sql`
-      INSERT INTO sessions (opening_cash) VALUES (${opening_cash}) RETURNING *
+      INSERT INTO sessions (opening_cash, status) VALUES (${opening_cash}, 'open') RETURNING *
     `
     return NextResponse.json(session, { status: 201 })
   } catch (error) {
