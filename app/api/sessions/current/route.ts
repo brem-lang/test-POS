@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const [session] = await sql`
       SELECT * FROM sessions
-      WHERE (status = 'open' OR status IS NULL) AND closed_at IS NULL
+      WHERE closed_at IS NULL
       ORDER BY opened_at DESC
       LIMIT 1
     `

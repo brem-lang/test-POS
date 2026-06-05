@@ -12,8 +12,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
     const [session] = await sql`
       UPDATE sessions
-      SET closing_cash = ${closing_cash}, closed_at = NOW(), status = 'closed'
-      WHERE id = ${params.id} AND (status = 'open' OR status IS NULL) AND closed_at IS NULL
+      SET closing_cash = ${closing_cash}, closed_at = NOW()
+      WHERE id = ${params.id} AND closed_at IS NULL
       RETURNING *
     `
     if (!session) return NextResponse.json({ error: 'Session not found or already closed' }, { status: 404 })
